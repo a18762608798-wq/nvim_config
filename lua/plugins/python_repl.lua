@@ -1,7 +1,7 @@
 return {
   {
     "Vigemus/iron.nvim",
-    ft = { "python", "quarto", "markdown" },
+    ft = { "python", "quarto", "markdown", "julia" },
     config = function()
       local iron = require("iron.core")
       local view = require("iron.view")
@@ -18,6 +18,19 @@ return {
         return { "python3" }
       end
 
+      local function current_julia()
+        local project = vim.fs.find("Project.toml", {
+          path = vim.fn.expand("%:p:h"),
+          upward = true,
+        })[1]
+
+        if project then
+          return { "julia", "--project=" .. vim.fs.dirname(project) }
+        end
+
+        return { "julia" }
+      end
+
       iron.setup({
         config = {
           scratch_repl = true,
@@ -28,18 +41,19 @@ return {
               block_dividers = { "# %%", "#%%" },
               env = { PYTHON_BASIC_REPL = "1" },
             },
+            julia = {
+              command = current_julia,
+            },
           },
           repl_filetype = function(_, ft)
             if ft == "quarto" then
-              return "python"
+              return "julia"
             end
             return ft
           end,
           repl_open_cmd = view.split.vertical.botright(50),
         },
         keymaps = {
-          toggle_repl = "<leader>rr",
-          restart_repl = "<leader>rR",
           send_code_block = "<leader>rc",
           send_code_block_and_move = "<leader>rn",
           visual_send = "<leader>rs",
@@ -49,9 +63,23 @@ return {
         },
         ignore_blank_lines = true,
       })
+      vim.keymap.set("n", "<leader>rr", function()
+        require("iron.core").focus_on("julia")
+      end, { desc = "Open/Focus Julia REPL", silent = true })
 
-      vim.keymap.set("n", "<leader>ro", "<cmd>IronFocus<cr>", { desc = "Focus REPL" })
-      vim.keymap.set("n", "<leader>rh", "<cmd>IronHide<cr>", { desc = "Hide REPL" })
+      vim.keymap.set("n", "<leader>ro", function()
+        require("iron.core").focus_on("julia")
+      end, { desc = "Open/Focus Julia REPL", silent = true })
+
+      vim.keymap.set("n", "<leader>rh", function()
+        vim.cmd("IronHide julia")
+      end, { desc = "Hide Julia REPL", silent = true })
+
+      vim.keymap.set("n", "<leader>rR", function()
+        local iron = require("iron.core")
+        iron.close_repl("julia")
+        iron.repl_for("julia")
+      end, { desc = "Restart Julia REPL", silent = true })
     end,
   },
 }
