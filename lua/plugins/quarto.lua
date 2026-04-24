@@ -28,40 +28,11 @@ return {
     },
     keys = {
       {
-        "<leader>qp",
+        "<leader>qv",
         function()
           require("quarto").quartoPreview()
         end,
         desc = "Quarto Preview",
-      },
-      {
-        "<leader>qc",
-        function()
-          require("quarto.runner").run_cell()
-        end,
-        desc = "Quarto Run Cell",
-      },
-      {
-        "<leader>qa",
-        function()
-          require("quarto.runner").run_all()
-        end,
-        desc = "Quarto Run All",
-      },
-      {
-        "<leader>ql",
-        function()
-          require("quarto.runner").run_line()
-        end,
-        desc = "Quarto Run Line",
-      },
-      {
-        mode = "v",
-        "<leader>qv",
-        function()
-          require("quarto.runner").run_range()
-        end,
-        desc = "Quarto Run Range",
       },
     },
   },
