@@ -140,17 +140,27 @@ return {
       --
       -- <leader>qj: 当前 cell 发到 Julia REPL
       -- <leader>qy: 当前 cell 发到 Python REPL
-      --
-      -- 注意：不用 <leader>qp，因为你的 quarto.lua 里已经把它用于 Quarto Preview。:contentReference[oaicite:1]{index=1}
 
       vim.keymap.set("n", "<leader>qj", function()
-        require("iron.core").repl_for("julia")
+        local iron = require("iron.core")
+
+        iron.repl_for("julia")
         require("quarto.runner").run_cell()
+
+        vim.schedule(function()
+          iron.repl_for("julia")
+        end)
       end, { desc = "Quarto Run Cell in Julia REPL", silent = true })
 
       vim.keymap.set("n", "<leader>qp", function()
-        require("iron.core").repl_for("python")
+        local iron = require("iron.core")
+
+        iron.repl_for("python")
         require("quarto.runner").run_cell()
+
+        vim.schedule(function()
+          iron.repl_for("python")
+        end)
       end, { desc = "Quarto Run Cell in Python REPL", silent = true })
     end,
   },

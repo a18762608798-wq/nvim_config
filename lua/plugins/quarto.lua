@@ -11,7 +11,7 @@ return {
       lspFeatures = {
         enabled = true,
         chunks = "curly",
-        languages = { "python", "bash", "html", "r", "julia" },
+        languages = { "python", "julia" },
         completion = {
           enabled = true,
         },
