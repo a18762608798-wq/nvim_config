@@ -1,25 +1,27 @@
 return {
   {
+    -- the statement of plugin and load condition.
     "Vigemus/iron.nvim",
     ft = { "python", "quarto", "markdown", "julia" },
     config = function()
+      -- load mdould.
       local iron = require("iron.core")
       local view = require("iron.view")
       local common = require("iron.fts.common")
 
+      -- Definite a function to find project dir
       local function find_project_dir()
         local project = vim.fs.find("Project.toml", {
           path = vim.fn.expand("%:p:h"),
           upward = true,
         })[1]
-
         if project then
           return vim.fs.dirname(project)
         end
-
         return nil
       end
 
+      -- Definite a function to find python environment.
       local function current_python()
         -- 1. 如果 shell 已经激活了 venv / conda，优先用它
         local venv = vim.env.VIRTUAL_ENV or vim.env.CONDA_PREFIX
@@ -30,10 +32,10 @@ return {
           end
         end
 
-        -- 2. 否则找最近的 Julia Project.toml
-        local project_dir = find_project_dir()
+        local project_dir = find_project_dir() -- find the project
+
         if project_dir then
-          -- 3. 使用这个 Julia project 里的 CondaPkg Python
+          -- 3. If we in the project dir, 使用这个 Julia project 里的 CondaPkg Python
           local result = vim
             .system({
               "julia",
@@ -41,7 +43,7 @@ return {
               "-e",
               'using CondaPkg; print(CondaPkg.which("python"))',
             }, { text = true })
-            :wait()
+            :wait() -- wait
 
           if result.code == 0 then
             local py = vim.trim(result.stdout)
@@ -55,6 +57,7 @@ return {
         return { "python3" }
       end
 
+      -- Definite a function to choose julia environment
       local function current_julia()
         local project_dir = find_project_dir()
 
@@ -65,6 +68,58 @@ return {
         return { "julia" }
       end
 
+      -- find the file dir
+      local function file_dir()
+        return vim.fn.expand("%:p:h")
+      end
+
+      -- run julia or python
+      local function shell_join(args)
+        return table.concat(
+          vim.tbl_map(function(x)
+            return vim.fn.shellescape(x)
+          end, args),
+          " "
+        )
+      end
+
+      local function run_in_snacks_terminal(cmd, cwd)
+        local command = shell_join(cmd)
+
+        Snacks.terminal({
+          "bash",
+          "-lc",
+          command .. '; echo; echo "[finished]"; exec "$SHELL" -i',
+        }, {
+          cwd = cwd,
+          auto_close = false,
+          win = {
+            position = "bottom",
+            height = 0.35,
+          },
+        })
+      end
+
+      local function run_current_file_with_snacks()
+        vim.cmd("write")
+
+        local ft = vim.bo.filetype
+        local file = vim.fn.expand("%:p")
+        local project_dir = find_project_dir()
+        local cwd = project_dir or file_dir()
+
+        if ft == "python" then
+          local cmd = vim.list_extend(current_python(), { file })
+          run_in_snacks_terminal(cmd, cwd)
+        elseif ft == "julia" then
+          local cmd = vim.list_extend(current_julia(), { file })
+          run_in_snacks_terminal(cmd, cwd)
+        else
+          vim.notify("Only python and julia files are supported", vim.log.levels.WARN)
+        end
+      end
+
+      -- Use the iron.nvim to call repl
       iron.setup({
         config = {
           scratch_repl = true,
@@ -79,29 +134,17 @@ return {
               command = current_julia,
             },
           },
-
-          -- 不要把 quarto 永远强制成 julia
           repl_filetype = function(_, ft)
             return ft
           end,
-
           repl_open_cmd = view.split.vertical.botright(50),
         },
-        keymaps = {
-          send_code_block = "<leader>rc",
-          send_code_block_and_move = "<leader>rn",
-          visual_send = "<leader>rs",
-          send_line = "<leader>rl",
-          send_file = "<leader>rf",
-          interrupt = "<leader>rq",
-        },
+        keymaps = {},
         ignore_blank_lines = true,
       })
 
-      -- ======================
-      -- Julia REPL 快捷键
-      -- ======================
-
+      -- keymaps
+      -- julia
       vim.keymap.set("n", "<leader>jr", function()
         require("iron.core").focus_on("julia")
       end, { desc = "Open/Focus Julia REPL", silent = true })
@@ -116,10 +159,7 @@ return {
         iron.repl_for("julia")
       end, { desc = "Restart Julia REPL", silent = true })
 
-      -- ======================
       -- Python REPL 快捷键
-      -- ======================
-
       vim.keymap.set("n", "<leader>pr", function()
         require("iron.core").focus_on("python")
       end, { desc = "Open/Focus Python REPL", silent = true })
@@ -134,13 +174,7 @@ return {
         iron.repl_for("python")
       end, { desc = "Restart Python REPL", silent = true })
 
-      -- ======================
       -- Quarto 发送到指定 REPL
-      -- ======================
-      --
-      -- <leader>qj: 当前 cell 发到 Julia REPL
-      -- <leader>qy: 当前 cell 发到 Python REPL
-
       vim.keymap.set("n", "<leader>qj", function()
         local iron = require("iron.core")
 
@@ -162,6 +196,11 @@ return {
           iron.repl_for("python")
         end)
       end, { desc = "Quarto Run Cell in Python REPL", silent = true })
+
+      vim.keymap.set("n", "<leader>rf", run_current_file_with_snacks, {
+        desc = "Run current Python/Julia file in Snacks terminal",
+        silent = true,
+      })
     end,
   },
 }
