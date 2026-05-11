@@ -73,34 +73,22 @@ return {
         return vim.fn.expand("%:p:h")
       end
 
-      -- run julia or python
-      local function shell_join(args)
-        return table.concat(
-          vim.tbl_map(function(x)
-            return vim.fn.shellescape(x)
-          end, args),
-          " "
-        )
-      end
+      -- run julia or python in normal terminal buffer
+      local function run_in_terminal(cmd, opts)
+        opts = opts or {}
 
-      local function run_in_snacks_terminal(cmd, cwd)
-        local command = shell_join(cmd)
+        vim.cmd("botright split")
+        vim.cmd("resize 15")
 
-        Snacks.terminal({
-          "bash",
-          "-lc",
-          command .. '; echo; echo "[finished]"; exec "$SHELL" -i',
-        }, {
-          cwd = cwd,
-          auto_close = false,
-          win = {
-            position = "bottom",
-            height = 0.35,
-          },
+        vim.fn.jobstart(cmd, {
+          cwd = opts.cwd or file_dir(),
+          term = true,
         })
+
+        vim.cmd("startinsert")
       end
 
-      local function run_current_file_with_snacks()
+      local function run_current_file_in_terminal()
         vim.cmd("write")
 
         local ft = vim.bo.filetype
@@ -110,10 +98,10 @@ return {
 
         if ft == "python" then
           local cmd = vim.list_extend(current_python(), { file })
-          run_in_snacks_terminal(cmd, cwd)
+          run_in_terminal(cmd, { cwd = cwd })
         elseif ft == "julia" then
           local cmd = vim.list_extend(current_julia(), { file })
-          run_in_snacks_terminal(cmd, cwd)
+          run_in_terminal(cmd, { cwd = cwd })
         else
           vim.notify("Only python and julia files are supported", vim.log.levels.WARN)
         end
@@ -197,7 +185,7 @@ return {
         end)
       end, { desc = "Quarto Run Cell in Python REPL", silent = true })
 
-      vim.keymap.set("n", "<leader>rf", run_current_file_with_snacks, {
+      vim.keymap.set("n", "<leader>rf", run_current_file_in_terminal, {
         desc = "Run current Python/Julia file in Snacks terminal",
         silent = true,
       })
