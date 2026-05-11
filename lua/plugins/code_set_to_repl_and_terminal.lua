@@ -73,22 +73,102 @@ return {
         return vim.fn.expand("%:p:h")
       end
 
-      -- run julia or python in normal terminal buffer
-      local function run_in_terminal(cmd, opts)
-        opts = opts or {}
+      -- run julia or python and put output in scratch buffer, no terminal split
+      local run_output_buf = nil
 
-        vim.cmd("botright split")
-        vim.cmd("resize 15")
+      local function get_run_output_buf()
+        local output_buf_name = "[Run Output]"
 
-        vim.fn.jobstart(cmd, {
-          cwd = opts.cwd or file_dir(),
-          term = true,
-        })
+        -- 1. 优先复用本次 nvim session 里记录的 buffer
+        if run_output_buf and vim.api.nvim_buf_is_valid(run_output_buf) then
+          vim.bo[run_output_buf].buflisted = true
+          return run_output_buf
+        end
 
-        vim.cmd("startinsert")
+        -- 2. 如果 buffer 已经存在，就按名字找回来
+        for _, b in ipairs(vim.api.nvim_list_bufs()) do
+          if vim.api.nvim_buf_is_valid(b) then
+            local name = vim.api.nvim_buf_get_name(b)
+
+            -- 注意：这里必须 vim.pesc，因为 [Run Output] 里面有 []
+            if name:match(vim.pesc(output_buf_name) .. "$") then
+              run_output_buf = b
+              vim.bo[run_output_buf].buflisted = true
+              return run_output_buf
+            end
+          end
+        end
+
+        -- 3. 真的不存在时才新建
+        run_output_buf = vim.api.nvim_create_buf(true, true)
+        vim.api.nvim_buf_set_name(run_output_buf, output_buf_name)
+
+        vim.bo[run_output_buf].buflisted = true
+        vim.bo[run_output_buf].buftype = "nofile"
+        vim.bo[run_output_buf].bufhidden = "hide"
+        vim.bo[run_output_buf].swapfile = false
+        vim.bo[run_output_buf].filetype = "log"
+        vim.bo[run_output_buf].modifiable = true
+        vim.bo[run_output_buf].modified = false
+
+        return run_output_buf
       end
 
-      local function run_current_file_in_terminal()
+      local function run_in_scratch_buffer(cmd, opts)
+        opts = opts or {}
+
+        local buf = get_run_output_buf()
+
+        -- 不新建 split，只在当前窗口显示输出 buffer
+        vim.api.nvim_set_current_buf(buf)
+
+        vim.bo[buf].modifiable = true
+
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+          "Running:",
+          table.concat(cmd, " "),
+          "",
+          "Output:",
+          "",
+        })
+
+        vim.bo[buf].modified = false
+
+        vim.system(cmd, {
+          cwd = opts.cwd or file_dir(),
+          text = true,
+        }, function(result)
+          vim.schedule(function()
+            if not vim.api.nvim_buf_is_valid(buf) then
+              return
+            end
+
+            vim.bo[buf].modifiable = true
+
+            local lines = {}
+
+            if result.stdout and result.stdout ~= "" then
+              vim.list_extend(lines, vim.split(result.stdout, "\n", { plain = true }))
+            end
+
+            if result.stderr and result.stderr ~= "" then
+              if #lines > 0 then
+                table.insert(lines, "")
+              end
+              table.insert(lines, "Errors:")
+              vim.list_extend(lines, vim.split(result.stderr, "\n", { plain = true }))
+            end
+
+            table.insert(lines, "")
+            table.insert(lines, "Exit code: " .. result.code)
+
+            vim.api.nvim_buf_set_lines(buf, 5, -1, false, lines)
+            vim.bo[buf].modified = false
+          end)
+        end)
+      end
+
+      local function run_current_file()
         vim.cmd("write")
 
         local ft = vim.bo.filetype
@@ -98,10 +178,10 @@ return {
 
         if ft == "python" then
           local cmd = vim.list_extend(current_python(), { file })
-          run_in_terminal(cmd, { cwd = cwd })
+          run_in_scratch_buffer(cmd, { cwd = cwd })
         elseif ft == "julia" then
           local cmd = vim.list_extend(current_julia(), { file })
-          run_in_terminal(cmd, { cwd = cwd })
+          run_in_scratch_buffer(cmd, { cwd = cwd })
         else
           vim.notify("Only python and julia files are supported", vim.log.levels.WARN)
         end
@@ -185,8 +265,8 @@ return {
         end)
       end, { desc = "Quarto Run Cell in Python REPL", silent = true })
 
-      vim.keymap.set("n", "<leader>rf", run_current_file_in_terminal, {
-        desc = "Run current Python/Julia file in Snacks terminal",
+      vim.keymap.set("n", "<leader>rf", run_current_file, {
+        desc = "Run current Python/Julia file in scratch buffer",
         silent = true,
       })
     end,
