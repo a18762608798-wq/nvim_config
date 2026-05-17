@@ -72,10 +72,6 @@ return {
       vim.keymap.set("n", "<leader>qp", function()
         iron.repl_for("python")
         require("quarto.runner").run_cell()
-
-        vim.schedule(function()
-          iron.repl_for("python")
-        end)
       end, { desc = "Quarto Run Cell in Python REPL", silent = true })
 
       vim.keymap.set("n", "<leader>rf", code_runner.run_current_file, {

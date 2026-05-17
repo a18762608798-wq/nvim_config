@@ -2,6 +2,8 @@
 
 local M = {}
 
+local python_cache = {}
+
 function M.find_project_dir()
   local project = vim.fs.find("Project.toml", {
     path = vim.fn.expand("%:p:h"),
@@ -32,10 +34,15 @@ function M.current_python()
   local project_dir = M.find_project_dir()
 
   if project_dir then
+    if python_cache[project_dir] then
+      return { python_cache[project_dir] }
+    end
+
     local result = vim
       .system({
         "julia",
         "--project=" .. project_dir,
+        "--startup-file=no",
         "-e",
         'using CondaPkg; print(CondaPkg.which("python"))',
       }, { text = true })
@@ -44,6 +51,7 @@ function M.current_python()
     if result.code == 0 then
       local py = vim.trim(result.stdout)
       if py ~= "" and vim.fn.executable(py) == 1 then
+        python_cache[project_dir] = py
         return { py }
       end
     end
