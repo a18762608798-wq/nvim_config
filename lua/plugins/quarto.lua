@@ -30,7 +30,7 @@ return {
       {
         "<leader>qv",
         function()
-          require("quarto").quartoPreview()
+          require("quarto").quartoPreview({})
         end,
         desc = "Quarto Preview",
       },

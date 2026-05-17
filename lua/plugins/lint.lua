@@ -1,4 +1,4 @@
--- This lua file is to cancel the close the MD013, which is use to lint the line length of markdown files.
+-- Use project-level markdownlint config.
 return {
   {
     "mfussenegger/nvim-lint",
