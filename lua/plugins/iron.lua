@@ -47,15 +47,15 @@ return {
         iron.repl_for("julia")
       end, { desc = "Restart Julia REPL", silent = true })
 
-      vim.keymap.set("n", "<leader>pr", function()
+      vim.keymap.set("n", "<leader>Pr", function()
         iron.focus_on("python")
       end, { desc = "Open/Focus Python REPL", silent = true })
 
-      vim.keymap.set("n", "<leader>ph", function()
+      vim.keymap.set("n", "<leader>Ph", function()
         vim.cmd("IronHide python")
       end, { desc = "Hide Python REPL", silent = true })
 
-      vim.keymap.set("n", "<leader>pR", function()
+      vim.keymap.set("n", "<leader>PR", function()
         iron.close_repl("python")
         iron.repl_for("python")
       end, { desc = "Restart Python REPL", silent = true })
