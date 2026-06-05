@@ -25,10 +25,16 @@ return {
         desc = "Toogle (CodeCompanion)",
       },
       {
-        "<leader>ad",
+        "<leader>ap",
         "<cmd>CodeCompanionActions<cr>",
         mode = { "n", "v" },
         desc = "Prompt Actions (CodeCompanion)",
+      },
+      {
+        "<leader>ai",
+        "<cmd>CodeCompanion<cr>",
+        mode = { "n", "v" },
+        desc = "Inline (CodeCompanion)",
       },
     },
 

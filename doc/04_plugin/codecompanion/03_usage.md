@@ -5,7 +5,9 @@
 ```text
 Space a c    打开/关闭聊天窗口
 Space a d    打开 CodeCompanion 动作菜单
+Space a i    inline chat, use to quick revise.
 gx           clear the chat window
+C c          Stop anwser
 ```
 
 ## tools
