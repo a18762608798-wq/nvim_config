@@ -1,3 +1,4 @@
+-- REPL 交互工具, Interactive Reading-Oriented environment
 -- 只声明 iron 插件，配置 REPL，设置 related keymap。
 return {
   {
@@ -8,8 +9,8 @@ return {
       local view = require("iron.view")
       local common = require("iron.fts.common")
 
-      local repl = require("utils.repl")
-      local code_runner = require("utils.code_runner")
+      local repl = require("utils.venv_choice")
+      local code_runner = require("utils.code_buffer")
 
       iron.setup({
         config = {

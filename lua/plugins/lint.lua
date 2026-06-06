@@ -1,3 +1,4 @@
+-- **linter**（静态代码检查工具）
 -- Use project-level markdownlint config.
 return {
   {

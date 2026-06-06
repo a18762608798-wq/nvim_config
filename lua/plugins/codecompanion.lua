@@ -50,7 +50,7 @@ return {
             return require("codecompanion.adapters").extend("deepseek", {
               env = {
                 -- 这里填环境变量名，不是 sk-xxx 本体
-                api_key = "DEEPSEEKAPI",
+                api_key = "DEEPSEEK_API_KEY",
               },
               schema = {
                 model = {

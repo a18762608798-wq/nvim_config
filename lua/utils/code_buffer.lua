@@ -1,6 +1,6 @@
 -- 把当前 Python / Julia 文件跑进一个 terminal buffer
 
-local repl = require("utils.repl")
+local repl = require("utils.venv_choice")
 
 local M = {}
 

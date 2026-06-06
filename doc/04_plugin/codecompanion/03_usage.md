@@ -58,6 +58,20 @@ Use @{insert_edit_into_file} to refactor the code in #{buffer}
 Which revise the file.
 
 ```text
+@{web_search} 搜索RandomMeas.jl库的代码注释风格。
+```
+
+在用这个工具之前需要配置Tavily API key. 去 Tavily Platform 注册 / 登录，然后在 dashboard 里复制 API key。
+
+`export TAVILY_API_KEY=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`
+
+也可以搜索某个固定的网址.
+
+```text
+/fetch https://github.com/bvermersch/RandomMeas.jl/blob/89c492bfb05508e5babe9c8c2c40697995be9e42/src/Estimators.jl#L227-L238
+```
+
+```text
 Use @{create_file} to create a test file for this module
 ```
 

@@ -1,3 +1,4 @@
+-- snacks are used to add some small tools.
 return {
   {
     "folke/snacks.nvim",
