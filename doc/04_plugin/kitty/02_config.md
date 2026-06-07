@@ -163,4 +163,4 @@ If IBus switches back to English after reboot, add this command in Linux Mint st
 sh -c 'sleep 5; ibus engine libpinyin'
 ```
 
-The time to sleep could be set by GUI.
+The time to sleep could also be set by GUI.

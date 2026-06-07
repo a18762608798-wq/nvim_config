@@ -42,20 +42,20 @@ return {
       adapters = {
         http = {
           opts = {
-            -- 不每次都弹模型选择
             show_model_choices = false,
           },
 
           deepseek = function()
             return require("codecompanion.adapters").extend("deepseek", {
               env = {
-                -- 这里填环境变量名，不是 sk-xxx 本体
                 api_key = "DEEPSEEK_API_KEY",
               },
               schema = {
                 model = {
-                  -- 便宜、快一点；需要更强再改 deepseek-v4-pro
                   default = "deepseek-v4-flash",
+                },
+                max_tokens = {
+                  default = 16384,
                 },
               },
             })
@@ -66,10 +66,26 @@ return {
       interactions = {
         chat = {
           adapter = "deepseek",
+          opts = {
+            system_prompt = function(ctx)
+              return ctx.default_system_prompt
+                .. [[
+
+        Additional user preferences:
+        - 你是一个资深中文AI助手。
+        - 除非用户明确要求其他语言，否则所有解释、总结、提问都默认使用简体中文。
+        - 代码、命令、文件名、API 名称保持原文。
+        - 回答先给结论，再给必要说明。
+        - 对于数学公式，采用$符号的markdown格式。
+        ]]
+            end,
+          },
         },
+
         inline = {
           adapter = "deepseek",
         },
+
         cmd = {
           adapter = "deepseek",
         },
