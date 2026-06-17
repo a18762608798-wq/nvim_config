@@ -60,12 +60,28 @@ return {
               },
             })
           end,
+
+          deepseek_pro = function()
+            return require("codecompanion.adapters").extend("deepseek", {
+              env = {
+                api_key = "DEEPSEEK_API_KEY",
+              },
+              schema = {
+                model = {
+                  default = "deepseek-v4-pro",
+                },
+                max_tokens = {
+                  default = 16384,
+                },
+              },
+            })
+          end,
         },
       },
 
       interactions = {
         chat = {
-          adapter = "deepseek",
+          adapter = "deepseek_pro",
           opts = {
             system_prompt = function(ctx)
               return ctx.default_system_prompt
@@ -83,11 +99,11 @@ return {
         },
 
         inline = {
-          adapter = "deepseek",
+          adapter = "deepseek_pro",
         },
 
         cmd = {
-          adapter = "deepseek",
+          adapter = "deepseek_pro",
         },
       },
     },

@@ -16,7 +16,7 @@ return {
           name = "deepseek",
           api_key = "DEEPSEEK_API_KEY", -- 注意：这里填环境变量名，不是 sk-xxx 本体
           end_point = "https://api.deepseek.com/beta/completions",
-          model = "deepseek-v4-flash",
+          model = "deepseek-v4-pro",
           stream = true,
           optional = {
             max_tokens = 128,
